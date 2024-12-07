@@ -1,21 +1,17 @@
-from sqlmodel import SQLModel, create_engine, Session
+from beanie import init_beanie
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
+from contextlib import asynccontextmanager
+
+from config.settings import settings
+from models.users import User
+from models.events import Event
 
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> None:
+    client = AsyncIOMotorClient(settings.mongo_url)
+    await init_beanie(database=client["planner"], document_models=[User, Event])
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
-
-
-def conn():
-    SQLModel.metadata.create_all(engine)
-
-
-def drop_database():
-    SQLModel.metadata.drop_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
+    yield
+    client.close()

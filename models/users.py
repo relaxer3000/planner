@@ -1,18 +1,30 @@
-from pydantic import EmailStr
-from sqlmodel import SQLModel, Field as SQLField, Relationship
+from pydantic import EmailStr, BaseModel
+from beanie import Document, Link
+
+from models.events import Event
 
 
-class User(SQLModel, table=True):
-    id: int | None = SQLField(default=None, nullable=False, primary_key=True)
+class User(Document):
+
+    class Settings:
+        name = "users"
+
     email: EmailStr
+    password: str
     username: str
-    events: list['Event'] = Relationship(back_populates="user")
+    events: list[Link[Event]] | None = None
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "email": "fastapi@packt.com",
+                "password": "1111",
                 "username": "fastapi",
             }
         }
     }
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str

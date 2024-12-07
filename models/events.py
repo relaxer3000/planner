@@ -1,38 +1,44 @@
 from pydantic import BaseModel
-from sqlmodel import SQLModel, Field as SQLField, Relationship
-
-from models.users import User
+from beanie import Document
 
 
-class Event(SQLModel, table=True):
-    id: int | None = SQLField(default=None, primary_key=True)
+class Event(Document):
+
+    class Settings:
+        name = "events"
+
+    creator: str | None = None
     title: str
     description: str
-    user_id: int | None = SQLField(default=None, foreign_key="user.id")
-    user: User | None = Relationship(back_populates="events")
+    tags: list[str] | None
+    location: str | None
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "title": "FastAPI Book Launch",
                 "description": "We will be discussing the contents of the FastAPI book in this event.",
-                "user_id": 1
+                "tags": ["Book", "FastAPI"],
+                "location": "Google Meet"
             }
         }
     }
 
 
 class UpdateEvent(BaseModel):
+
     title: str | None = None
     description: str | None = None
-    user_id: int | None = None
+    tags: list[str] | None
+    location: str | None
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "title": "FastAPI Book",
                 "description": "We will be discussing the contents of the FastAPI book in this event.",
-                "user_id": 2
+                "tags": ["Book", "FastAPI"],
+                "location": "Google Meet"
             }
         }
     }
